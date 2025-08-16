@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple Rocket Dodge Game with Moving Space Background</title>
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            overflow: hidden;
+        }
+
+        #bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: black;
+        }
+
+        #rocket {
+            width: 100px;
+            height: 140px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            background: url('img/rocket.jpg') no-repeat center/contain;
+            padding: 20px;
+            box-sizing: content-box;
+            z-index: 1;
+        }
+
+        #enemy {
+            width: 40px;
+            height: 40px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 100px;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bg"></canvas>
+    <div id="rocket"></div>
+    <div id="enemy"></div>
+
+    <script>
+        const canvas = document.getElementById('bg');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const stars = [];
+        const numStars = 100;
+
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                speed: 1 + Math.random() * 2
+            });
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            for (let star of stars) {
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            }
+            requestAnimationFrame(animateStars);
+        }
+
+        animateStars();
+
+        const rocket = document.getElementById("rocket");
+        const enemy = document.getElementById("enemy");
+        let enemyY = 0;
+
+        document.addEventListener("keydown", e => {
+            let left = parseInt(rocket.style.left) || window.innerWidth / 2;
+            if (e.key === "ArrowLeft") left -= 20;
+            if (e.key === "ArrowRight") left += 20;
+            if (left < 0) left = 0;
+            if (left > window.innerWidth - 100) left = window.innerWidth - 100;
+            rocket.style.left = left + "px";
+        });
+
+        function resetGame() {
+            enemyY = 0;
+            rocket.style.left = window.innerWidth / 2 + "px";
+            enemy.style.top = "0px";
+            enemy.style.left = Math.random() * (window.innerWidth - 40) + "px";
+            gameLoop();
+        }
+
+        function gameLoop() {
+            enemyY += 5;
+            enemy.style.top = enemyY + "px";
+
+            if (enemyY > window.innerHeight) {
+                enemyY = 0;
+                enemy.style.left = Math.random() * (window.innerWidth - 40) + "px";
+            }
+
+            let r = rocket.getBoundingClientRect();
+            let e = enemy.getBoundingClientRect();
+            let hitBox = {
+                left: r.left + 20,
+                right: r.right - 20,
+                top: r.top + 20,
+                bottom: r.bottom - 20
+            };
+
+            if (!(hitBox.right < e.left || hitBox.left > e.right || hitBox.bottom < e.top || hitBox.top > e.bottom)) {
+                alert("Game Over!");
+                resetGame();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        resetGame();
+    </script>
+</body>
+
+</html>
